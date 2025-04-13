@@ -3,7 +3,7 @@
   vars:
     slurm_roles: ["master", "dbd", "node"]
   roles:
-    - role: slurm
+    - role: ansible-slurm
       become: True
 
 - name: Computer
@@ -11,5 +11,5 @@
   vars:
     slurm_roles: ["node"]
   roles:
-    - role: slurm
+    - role: ansible-slurm
       become: True

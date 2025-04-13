@@ -80,8 +80,8 @@
 | top_dir | 安装根目录 | /opt/hpc |
 | slurm_cluster_name | 集群名称 | cluster |
 | slurm_control_machine | 控制节点主机名 | master |
-| slurm_compute_nodes | 计算节点配置列表 | compute[1-10] |
-| slurm_partitions | 集群分区配置 | debug |
+| slurm_compute_nodes | 计算节点配置列表 | compute[01-02] |
+| slurm_partitions | 集群分区配置 | test |
 | mariadb_root_password | MariaDB根密码 | 123456 |
 | slurm_db_name | Slurm数据库名称 | slurm_acct_db |
 | slurm_db_user | Slurm数据库用户 | slurm |
