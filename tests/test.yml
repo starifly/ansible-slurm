@@ -1,0 +1,15 @@
+- name: Controller
+  hosts: master
+  vars:
+    slurm_roles: ["master", "dbd", "node"]
+  roles:
+    - role: slurm
+      become: True
+
+- name: Computer
+  hosts: node
+  vars:
+    slurm_roles: ["node"]
+  roles:
+    - role: slurm
+      become: True

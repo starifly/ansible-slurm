@@ -1,0 +1,66 @@
+##
+## This file is maintained by Ansible - ALL MODIFICATIONS WILL BE REVERTED
+##
+
+# Job Accounting Configuration
+AccountingStorageType=accounting_storage/slurmdbd
+AccountingStorageHost={{ inventory_hostname }}
+AccountingStoragePort={{ slurm_dbd_port }}
+
+# Configless Mode Configuration
+SlurmctldParameters=enable_configless
+
+ProctrackType=proctrack/cgroup
+TaskPlugin=task/cgroup,task/affinity
+#ProctrackType=proctrack/pgid
+#TaskPlugin=task/none
+
+# Authentication and Communication Configuration
+AuthType=auth/munge
+CryptoType=crypto/munge
+SlurmctldPort=6817
+SlurmdPort=6818
+
+# Cluster Name and Control Node
+ClusterName={{ slurm_cluster_name }}
+ControlMachine={{ slurm_control_machine }}
+ControlAddr={{ slurm_control_addr }}
+SlurmUser={{ slurm_user }}
+
+# Job and Node State Storage Location
+StateSaveLocation={{ slurm_install_dir }}/state
+SlurmdSpoolDir={{ slurm_install_dir }}/spool
+
+# Logging Configuration
+SlurmctldLogFile={{ slurm_install_dir }}/log/slurmctld.log
+SlurmdLogFile={{ slurm_install_dir }}/log/slurmd.log
+SlurmctldDebug=info
+SlurmdDebug=info
+
+# Process ID Files
+SlurmctldPidFile=/var/run/slurmctld/slurmctld.pid
+SlurmdPidFile=/var/run/slurmd.pid
+
+# Job Scheduling Configuration
+SchedulerType=sched/backfill
+SelectType=select/cons_tres
+SelectTypeParameters=CR_Core
+
+{% set gres = "" %}
+{% if slurm_gres != "" %}
+  {%- set gres = "Gres=%s" % slurm_gres -%}
+{% endif %}
+
+{% if slurm_gres_tpes != "" %}
+GresTypes={{ slurm_gres_tpes }}
+{% endif %}
+
+# Node Configuration
+{% for node in slurm_compute_nodes %}
+NodeName={{ node.name }} CPUs={{ node.cpus }} Sockets={{ node.sockets }} CoresPerSocket={{ node.cores_per_socket }} ThreadsPerCore={{ node.threads_per_core }} RealMemory={{ node.memory }} {{ gres }}  State={{ node.state }}
+{% endfor %}
+
+# Partition Configuration
+{% for partition in slurm_partitions %}
+PartitionName={{ partition.name }} Nodes={{ partition.nodes }} Default={{ partition.default }} MaxTime={{ partition.max_time }} State={{ partition.state }}
+{% endfor %}

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export SLURM_HOME=/opt/hpc/slurm-{{ slurm_version }}
+export PATH=$SLURM_HOME/bin:$PATH
+export PATH=$SLURM_HOME/sbin:$PATH
+export LD_LIBRARY_PATH=$SLURM_HOME/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$SLURM_HOME/lib/slurm:$LD_LIBRARY_PATH

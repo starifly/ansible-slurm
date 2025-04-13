@@ -1,0 +1,28 @@
+---
+# Compute node configuration tasks
+
+# In no-configuration mode, compute nodes do not need to copy configuration files, they will directly get configuration from the control node
+
+# Create slurmd service file
+- name: Create slurmd service file
+  template:
+    src: slurmd.service.j2
+    dest: /etc/systemd/system/slurmd.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd
+
+- name: Ensure munge service is running before starting slurmd
+  systemd:
+    name: munge
+    state: restarted
+  when: slurm_start_services | default(true)
+
+# Start and enable slurmd service
+- name: Start and enable slurmd service
+  systemd:
+    name: slurmd
+    state: started
+    enabled: yes
+  when: slurm_start_services | default(true)

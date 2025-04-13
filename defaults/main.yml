@@ -1,0 +1,70 @@
+---
+# Slurm version and installation path
+slurm_version: "24.11.4"
+top_dir: "/opt/hpc"
+slurm_install_dir: "{{ top_dir }}/slurm-{{ slurm_version }}"
+slurm_tmp_dir: "/tmp/slurm_install"
+
+# Cluster name
+slurm_cluster_name: "cluster"
+
+# Node configuration
+slurm_control_machine: "master"
+slurm_control_addr: "{{ hostvars[slurm_control_machine]['ansible_host'] | default(hostvars[slurm_control_machine]['ansible_ssh_host']) | default(slurm_control_machine) }}"
+
+slurm_compute_nodes:
+  - name: "master,node[01-02]"
+    cpus: 4
+    sockets: 2
+    cores_per_socket: 2
+    threads_per_core: 1
+    memory: 2933
+    state: UNKNOWN
+
+# Partition configuration
+slurm_partitions:
+  - name: "test"
+    nodes: "master,node[01-02]"
+    default: "YES"
+    max_time: "INFINITE"
+    state: UP
+
+# GRES specification for the computer
+slurm_gres: ""
+# GRES types specification for the computer
+slurm_gres_tpes: ""
+# GRES conf data file
+slurm_gres_conf: "AutoDetect=nvml"
+
+# Database configuration
+slurm_dbd_port: "6819"
+mariadb_root_password: "123456"
+slurm_db_name: "slurm_acct_db"
+slurm_db_user: "slurm"
+slurm_db_pass: "12345678"
+
+# Munge configuration
+munge_key_path: "/etc/munge/munge.key"
+
+# User configuration
+slurm_user: "slurm"
+slurm_user_id: 888
+slurm_group: "slurm"
+slurm_group_id: 888
+
+# Service configuration
+slurm_services:
+  controller:
+    - "slurmctld"
+  compute:
+    - "slurmd"
+  database:
+    - "slurmdbd"
+    - "mariadb"
+
+
+# Clean up temporary files
+slurm_cleanup_tmp: true
+
+# Whether to start services
+slurm_start_services: true

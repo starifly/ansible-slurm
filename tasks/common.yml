@@ -1,0 +1,230 @@
+---
+# Common configuration tasks for all nodes
+
+# Create slurm user and group
+- name: Create slurm group
+  group:
+    name: "{{ slurm_group }}"
+    gid: "{{ slurm_group_id }}"
+    state: present
+
+- name: Create slurm user
+  user:
+    name: "{{ slurm_user }}"
+    uid: "{{ slurm_user_id }}"
+    group: "{{ slurm_group }}"
+    shell: /sbin/nologin
+    create_home: no
+    state: present
+
+# Create temporary installation directory and HPC directory
+- name: Create temporary installation directory
+  file:
+    path: "{{ slurm_tmp_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create HPC directory
+  file:
+    path: "{{ top_dir }}"
+    state: directory
+    mode: '0755'
+
+      #- name: Attempt to update apt cache
+      #  apt:
+      #    update_cache: yes
+      #  register: apt_update_result
+      #  ignore_errors: yes
+      #  when: ansible_os_family == 'Debian'
+
+# Copy PMIx source files from local to remote temporary directory
+- name: Copy PMIx source files to temporary directory
+  copy:
+    src: "pmix-{{ item }}.tar.gz"
+    dest: "{{ slurm_tmp_dir }}/pmix-{{ item }}.tar.gz"
+  loop:
+    - "3.2.5"
+    - "4.2.9"
+    - "5.0.7"
+  when: inventory_hostname == slurm_control_machine
+
+# Copy Slurm source files from local to remote temporary directory
+- name: Copy Slurm source files to temporary directory
+  copy:
+    src: "slurm-{{ slurm_version }}.tar.gz"
+    dest: "{{ slurm_tmp_dir }}/slurm-{{ slurm_version }}.tar.gz"
+  when: inventory_hostname == slurm_control_machine
+
+# Install dependencies online (RedHat/CentOS)
+- name: Install dependencies online (RedHat/CentOS)
+  yum:
+    name:
+      - gcc
+      - make
+      - mariadb
+      - mariadb-devel
+      - mariadb-server
+      - munge
+      - munge-libs
+      - munge-devel
+      - hwloc-libs
+      - hwloc-devel
+      - libevent-devel
+      - hdf5-devel
+      - pam-devel
+      - perl-ExtUtils-MakeMaker
+      - python3
+      - readline-devel
+      - kernel-headers
+      - dbus-devel
+      - rpm-build
+      - lua
+      - lua-devel
+      - dbus-devel
+      - python3-PyMySQL
+    state: present
+    disable_gpg_check: yes
+    enablerepo: "*"
+  when: ansible_os_family == 'RedHat'
+
+# Install dependencies online (Debian/Ubuntu)
+- name: Install dependencies online (Debian/Ubuntu)
+  apt:
+    name:
+      - gcc
+      - make
+      - munge
+      - libmunge-dev
+      - libmariadb-dev
+      - mariadb-server
+      - libpam0g-dev
+      - libcgroup-dev
+      - libhwloc-dev
+      - libevent-dev
+      - libhdf5-dev
+      - hdf5-tools
+      - build-essential
+      - fakeroot
+      - devscripts
+      - equivs
+      - lua5.3
+      - liblua5.3-dev
+      - libdbus-1-dev
+      - python3-pymysql
+    state: present
+    dpkg_options: "force-confdef,force-confold"
+  when: ansible_os_family == 'Debian'
+
+# Extract PMIx source code (only on controller node)
+- name: Extract PMIx source code
+  unarchive:
+    src: "{{ slurm_tmp_dir }}/pmix-{{ item }}.tar.gz"
+    dest: "{{ slurm_tmp_dir }}/"
+    remote_src: yes
+  loop:
+    - "3.2.5"
+    - "4.2.9"
+    - "5.0.7"
+  when: inventory_hostname == slurm_control_machine
+
+# Compile and install PMIx (only on controller node)
+- name: Configure and compile PMIx
+  shell: |
+    cd /tmp/slurm_install/pmix-{{ item }}
+    ./configure --prefix={{ top_dir }}/pmix-{{ item }}
+    make -j$(lscpu | grep '^CPU(s):' | awk '{print $2}') && make install
+  args:
+    creates: "{{ top_dir }}/pmix-{{ item }}/bin/pmix-info"
+  loop:
+    - "3.2.5"
+    - "4.2.9"
+    - "5.0.7"
+  when: inventory_hostname == slurm_control_machine
+
+# Copy PMIx from controller node to compute nodes
+- name: Get PMIx installation directory from controller node
+  synchronize:
+    src: "{{ top_dir }}/pmix-{{ item }}/"
+    dest: "{{ top_dir }}/pmix-{{ item }}/"
+    archive: yes
+    recursive: yes
+  loop:
+    - "3.2.5"
+    - "4.2.9"
+    - "5.0.7"
+  delegate_to: "{{ slurm_control_machine }}"
+  when: inventory_hostname != slurm_control_machine
+
+# Extract Slurm source code
+- name: Extract Slurm source code
+  unarchive:
+    src: "{{ slurm_tmp_dir }}/slurm-{{ slurm_version }}.tar.gz"
+    dest: "{{ slurm_tmp_dir }}/"
+    remote_src: yes
+  when: inventory_hostname == slurm_control_machine
+
+# Compile and install Slurm (only on controller node)
+- name: Configure and compile Slurm
+  shell: |
+    cd /tmp/slurm_install/slurm-{{ slurm_version }}
+    ./configure --prefix={{ top_dir }}/slurm-{{ slurm_version }} \
+               --with-lua \
+               --with-pmix={{ top_dir }}/pmix-3.2.5:{{ top_dir }}/pmix-4.2.9:{{ top_dir }}/pmix-5.0.7 \
+               --enable-pam \
+               --enable-cgroupv2 \
+               --with-hdf5=yes
+    make -j$(lscpu | grep '^CPU(s):' | awk '{print $2}') && make install
+  args:
+    creates: "{{ top_dir }}/slurm-{{ slurm_version }}/sbin/slurmctld"
+  when: inventory_hostname == slurm_control_machine
+
+# Copy Slurm from controller node to compute nodes
+- name: Get Slurm installation directory from controller node
+  synchronize:
+    src: "{{ top_dir }}/slurm-{{ slurm_version }}/"
+    dest: "{{ top_dir }}/slurm-{{ slurm_version }}/"
+    archive: yes
+    recursive: yes
+    rsync_opts:
+      - "--exclude=etc"
+      - "--exclude=log"
+      - "--exclude=state"
+      - "--exclude=spool"
+  delegate_to: "{{ slurm_control_machine }}"
+  when: inventory_hostname != slurm_control_machine
+
+# Clean up temporary files
+- name: Clean up temporary installation files
+  file:
+    path: "{{ slurm_tmp_dir }}"
+    state: absent
+  when: slurm_cleanup_tmp | default(true)
+
+# Create Slurm master node directories
+- name: Create Slurm master node directories
+  file:
+    path: "{{ slurm_install_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ slurm_user }}"
+    group: "{{ slurm_group }}"
+    mode: '0755'
+  loop:
+    - etc
+    - log
+    - state
+    - spool
+  when: "'master' in slurm_roles"
+
+# Create Slurm compute node directories
+- name: Create Slurm compute node directories
+  file:
+    path: "{{ slurm_install_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ slurm_user }}"
+    group: "{{ slurm_group }}"
+    mode: '0755'
+  loop:
+    - etc
+    - log
+    - spool
+  when: "'master' not in slurm_roles"

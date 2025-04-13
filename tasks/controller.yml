@@ -1,0 +1,50 @@
+---
+# Controller node configuration tasks
+
+# Copy slurm.conf configuration file
+- name: Generate slurm.conf configuration file
+  template:
+    src: slurm.conf.j2
+    dest: "{{ slurm_install_dir }}/etc/slurm.conf"
+    owner: "{{ slurm_user }}"
+    group: "{{ slurm_group }}"
+    mode: '0644'
+  notify: restart slurmctld
+
+# Copy cgroup.conf configuration file
+- name: Generate cgroup.conf configuration file
+  template:
+    src: cgroup.conf.j2
+    dest: "{{ slurm_install_dir }}/etc/cgroup.conf"
+    owner: "{{ slurm_user }}"
+    group: "{{ slurm_group }}"
+    mode: '0644'
+  notify: restart slurmctld
+
+# Copy gres.conf configuration file
+- name: Generate gres.conf configuration file
+  template:
+    src: gres.conf.j2
+    dest: "{{ slurm_install_dir }}/etc/gres.conf"
+    owner: "{{ slurm_user }}"
+    group: "{{ slurm_group }}"
+    mode: '0644'
+  notify: restart slurmctld
+
+# Create slurmctld service file
+- name: Create slurmctld service file
+  template:
+    src: slurmctld.service.j2
+    dest: /etc/systemd/system/slurmctld.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd
+
+# Start and enable slurmctld service
+- name: Start and enable slurmctld service
+  systemd:
+    name: slurmctld
+    state: started
+    enabled: yes
+  when: slurm_start_services | default(true)

@@ -1,0 +1,33 @@
+# 配置cgroup.conf(管理节点配置)
+# 启用cgroup资源限制, 可以防止用户实际使用的资源超过用户为该作业通过作业调度系统申请到的资源。
+# 如不设定，注释掉在 /etc/slurm/slurm.conf中 ProctrackType=proctrack/cgroup 及 TaskPlugin=task/cgroup 参数。
+# 如必须得有 cgroup.conf 配置文件，可配置如下（注意取消注释）：
+# CgroupPlugin=cgroup/v1
+# ConstrainCores=no
+# ConstrainRAMSpace=no
+# 如需要设定，打开/etc/slurm/slurm.conf中 ProctrackType=proctrack/cgroup 和 TaskPlugin=task/cgroup 参数，
+# 还需要设定 /etc/slurm/cgroup.conf 文件内容类似如下：
+
+# Slurm cgroup support configuration file
+# See man slurm.conf and man cgroup.conf for further
+# information on cgroup configuration parameters
+# CgroupAutomount=yes 
+# Cgroup自动挂载。Slurm cgroup插件需要挂载有效且功能正常的cgroup子系统于 /sys/fs/cgroup/<subsystem_name>。
+# 当启动时, 插件检查该子系统是否可用。如不可用, 该插件将启动失败, 直到CgroupAutomount设置为yes。
+# 在此情形侠，插件首先尝试挂载所需的子系统。
+CgroupMountpoint=/sys/fs/cgroup 
+# 设置cgroup挂载点, 该目录应该是可写的, 可以含有每个子系统挂载的cgroups。默认在/sys/fs/cgroup。
+# CgroupPlugin= 
+# 设置与cgroup子系统交互采用的插件。其值可以为cgroup/v1(支持传统的cgroup v1接口)或autodetect(根据系统提供的cgroup版本自动选择)。
+#默认为autodetect。
+
+ConstrainCores=yes 
+# 如设为yes, 则容器允许将CPU核作为可分配资源子集, 该项功能使用cpuset子系统。由于HWLOC 1.11.5版本中修复的错误，
+# 除了task/cgroup外, 可能还需要task/affinity插件才能正常运行。默认为no。
+ConstrainDevices=yes 
+# 如设为yes, 则容器允许将基于GRES的设备作为可分配资源, 这使用设备子系统。默认为no。
+ConstrainRAMSpace=yes 
+# 如设为yes, 则通过将内存软限制设置为分配的内存, 并将硬限制设置为分配的内存AllowedRAMSpace来限制作业的内存使用。
+# 默认值为no, 在这种情况下, 如ConstrainSwapSpace设为“yes”, 则作业的内存限制将设置为其交换空间(SWAP)限制。
+#注意, 在使用ConstrainRAMSpace时, 如果一个作业步中所有进程使用的总内存大于限制, 那么内核将触发内存不足(Out Of Memory, OOM)事件，
+# 将杀死作业步中的一个或多个进程。作业步状态将被标记为OOM, 但作业步本身将继续运行, 作业步中的其它进程也可能继续运行。

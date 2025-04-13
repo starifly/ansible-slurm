@@ -1,0 +1,63 @@
+---
+# Main task file, calls different tasks based on node role
+
+# Check necessary variables
+- name: Check necessary variables
+  assert:
+    that:
+      - slurm_version is defined
+      - slurm_cluster_name is defined
+      - slurm_control_machine is defined
+      - slurm_roles is defined
+    fail_msg: "Required variables are not defined"
+
+# Debug node information
+- name: Debug node information
+  debug:
+    msg: 
+      - "Current hostname: {{ inventory_hostname }}"
+      - "Slurm control machine: {{ slurm_control_machine }}"
+      - "Slurm roles: {{ slurm_roles | default([]) }}"
+
+- name: Attempt to update apt cache
+  apt:
+    update_cache: yes
+  register: apt_update_result
+  ignore_errors: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Attempt to update yum cache
+  yum:
+    update_cache: yes
+  register: yum_update_result
+  ignore_errors: yes
+  when: ansible_os_family == 'RedHat'
+
+# Configure time synchronization
+- name: Include time synchronization configuration
+  include_tasks: time_sync.yml
+
+# Include common tasks
+- name: Include common configuration tasks
+  include_tasks: common.yml
+
+# Configure Slurm environment variables
+- name: Include Slurm environment variables configuration
+  include_tasks: environment.yml
+
+# Configure Munge authentication
+- name: Include Munge authentication configuration
+  include_tasks: munge.yml
+
+# Include specific tasks based on node role
+- name: Include database node tasks
+  include_tasks: database.yml
+  when: "'dbd' in slurm_roles"
+
+- name: Include controller node tasks
+  include_tasks: controller.yml
+  when: "'master' in slurm_roles"
+
+- name: Include compute node tasks
+  include_tasks: compute.yml
+  when: "'node' in slurm_roles"

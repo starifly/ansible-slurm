@@ -1,0 +1,48 @@
+---
+# Handle service restart notifications
+
+# Reload systemd configuration
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+
+# Restart slurmctld service
+- name: restart slurmctld
+  systemd:
+    name: slurmctld
+    state: restarted
+  when: slurm_start_services | default(true)
+
+# Restart slurmd service
+- name: restart slurmd
+  systemd:
+    name: slurmd
+    state: restarted
+  when: slurm_start_services | default(true)
+
+# Restart slurmdbd service
+- name: restart slurmdbd
+  systemd:
+    name: slurmdbd
+    state: restarted
+  when: slurm_start_services | default(true)
+
+# Restart munged service
+- name: restart munged
+  systemd:
+    name: munge
+    state: restarted
+  when: slurm_start_services | default(true)
+
+# Restart chrony service
+- name: restart chrony
+  systemd:
+    name: chronyd
+    state: restarted
+  when: slurm_start_services | default(true)
+
+# Restart mariadb service
+- name: restart mariadb
+  systemd:
+    name: mariadb
+    state: restarted

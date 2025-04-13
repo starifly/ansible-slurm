@@ -1,0 +1,25 @@
+---
+# Slurm environment variables configuration tasks
+
+# Create Slurm environment variables configuration file
+- name: Create Slurm environment variables configuration file
+  template:
+    src: slurm.sh.j2
+    dest: /etc/profile.d/slurm.sh
+    owner: root
+    group: root
+    mode: '0644'
+
+# Add source command in root user's .bashrc file
+- name: Add source command in root user's .bashrc file
+  lineinfile:
+    path: /root/.bashrc
+    line: "source /etc/profile.d/slurm.sh"
+    state: present
+
+# Execute source command to make environment variables take effect immediately
+- name: Execute source command to make environment variables take effect immediately
+  shell: source /etc/profile
+  args:
+    executable: /bin/bash
+  changed_when: false

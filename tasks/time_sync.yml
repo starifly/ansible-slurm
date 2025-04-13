@@ -1,0 +1,57 @@
+---
+# Time synchronization configuration tasks
+
+# Set timezone to Asia/Shanghai
+- name: Set timezone to Asia/Shanghai
+  shell: timedatectl set-timezone Asia/Shanghai
+  args:
+    warn: false
+
+      #- name: Attempt to update apt cache
+      #  apt:
+      #    update_cache: yes
+      #  register: apt_update_result
+      #  ignore_errors: yes
+
+# Install chrony (different for Ubuntu and CentOS)
+- name: Install chrony on Ubuntu
+  apt:
+    name: chrony
+    state: present
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install chrony on CentOS
+  yum:
+    name: chrony
+    state: present
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+# Configure chrony.conf on master node
+- name: Configure chrony.conf on master node
+  template:
+    src: chrony_master.conf.j2
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: "'master' in slurm_roles"
+  notify: restart chrony
+
+# Configure chrony.conf on other nodes
+- name: Configure chrony.conf on other nodes
+  template:
+    src: chrony_node.conf.j2
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: "'master' not in slurm_roles"
+  notify: restart chrony
+
+# Start and enable chrony service
+- name: Start and enable chrony service
+  systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+  when: slurm_start_services | default(true)

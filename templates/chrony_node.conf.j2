@@ -1,0 +1,11 @@
+# Configuration file for slave nodes
+
+# Synchronize with master node
+server master iburst
+
+# Log file path
+logdir /var/log/chrony
+
+# Other default configurations
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
