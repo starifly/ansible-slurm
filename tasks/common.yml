@@ -55,6 +55,15 @@
     dest: "{{ slurm_tmp_dir }}/slurm-{{ slurm_version }}.tar.gz"
   when: inventory_hostname == slurm_control_machine
 
+# Install epel online (RedHat/CentOS)
+- name: Install dependencies online (RedHat/CentOS)
+  yum:
+    name:
+      - epel-release
+    state: present
+    disable_gpg_check: yes
+  when: ansible_os_family == 'RedHat'
+
 # Install dependencies online (RedHat/CentOS)
 - name: Install dependencies online (RedHat/CentOS)
   yum:
@@ -81,10 +90,10 @@
       - lua
       - lua-devel
       - dbus-devel
-      - python3-PyMySQL
+      - python-PyMySQL
+      - rsync
     state: present
     disable_gpg_check: yes
-    enablerepo: "*"
   when: ansible_os_family == 'RedHat'
 
 # Install dependencies online (Debian/Ubuntu)
@@ -171,8 +180,12 @@
                --with-lua \
                --with-pmix={{ top_dir }}/pmix-3.2.5:{{ top_dir }}/pmix-4.2.9:{{ top_dir }}/pmix-5.0.7 \
                --enable-pam \
+               {% if ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' %}
+               --with-hdf5=yes
+               {% else %}
                --enable-cgroupv2 \
                --with-hdf5=yes
+               {% endif %}
     make -j$(lscpu | grep '^CPU(s):' | awk '{print $2}') && make install
   args:
     creates: "{{ top_dir }}/slurm-{{ slurm_version }}/sbin/slurmctld"

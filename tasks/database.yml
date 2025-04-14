@@ -60,13 +60,40 @@
     mode: '0600'
   vars:
     mysql_root_password: "{{ mariadb_root_password }}"
+  when: ansible_os_family == 'Debian'
 
-- name: Set MariaDB root password
+- name: Set MariaDB root password (Debian/Ubuntu)
   mysql_user:
     name: root
     password: "{{ mariadb_root_password }}"
     login_unix_socket: /var/run/mysqld/mysqld.sock
     state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Check if MariaDB root password is empty
+  command: mysql -u root --skip-password -e "SELECT 1"
+  register: empty_password_check
+  changed_when: false
+  failed_when: false
+  check_mode: no
+  when: ansible_os_family == 'RedHat'
+
+- name: Set MariaDB root password (RedHat/CentOS)
+  mysql_user:
+    name: root
+    password: "{{ mariadb_root_password }}"
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    state: present
+  when: "empty_password_check.rc == 0 and ansible_os_family == 'RedHat'"
+
+- name: Copy .my.cnf file with root credentials
+  template:
+    src: my.cnf.j2
+    dest: /root/.my.cnf
+    mode: '0600'
+  vars:
+    mysql_root_password: "{{ mariadb_root_password }}"
+  when: ansible_os_family == 'RedHat'
 
 - name: Prohibit root remote login
   shell: |
