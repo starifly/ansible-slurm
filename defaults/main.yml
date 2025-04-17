@@ -48,9 +48,14 @@ munge_key_path: "/etc/munge/munge.key"
 
 # User configuration
 slurm_user: "slurm"
-slurm_user_id: 888
 slurm_group: "slurm"
+slurm_user_id: 888
 slurm_group_id: 888
+
+munge_user: munge
+munge_group: munge
+munge_uid: 999
+munge_gid: 999
 
 # Service configuration
 slurm_services:

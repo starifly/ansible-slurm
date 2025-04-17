@@ -1,46 +1,21 @@
 ---
 # Munge authentication configuration tasks
 
-# Get Munge user and group ID on controller node
-- name: Get Munge user ID
-  shell: id -u munge
-  register: munge_uid
-  when: "'master' in slurm_roles"
-  changed_when: false
-
-- name: Get Munge group ID
-  shell: "getent group munge | cut -d: -f3"
-  register: munge_gid
-  when: "'master' in slurm_roles"
-  changed_when: false
-
-# Get current Munge user and group ID on compute nodes
-- name: Get compute node current Munge user ID
-  shell: id -u munge
-  register: compute_munge_uid
-  when: "'master' not in slurm_roles"
-  changed_when: false
-
-- name: Get compute node current Munge group ID
-  shell: "getent group munge | cut -d: -f3"
-  register: compute_munge_gid
-  when: "'master' not in slurm_roles"
-  changed_when: false
-
-# Ensure Munge user and group IDs are consistent across all nodes, modify only if different
-- name: Set Munge user ID
-  user:
-    name: munge
-    uid: "{{ hostvars[slurm_control_machine]['munge_uid']['stdout'] }}"
-  when: "'master' not in slurm_roles and compute_munge_uid.stdout != hostvars[slurm_control_machine]['munge_uid']['stdout']"
-  notify: restart munged
-
-- name: Set Munge group ID
+# Create munge group and user
+- name: Create munge group
   group:
-    name: munge
-    gid: "{{ hostvars[slurm_control_machine]['munge_gid']['stdout'] }}"
-  when: "'master' not in slurm_roles and compute_munge_gid.stdout != hostvars[slurm_control_machine]['munge_gid']['stdout']"
-  notify: restart munged
+    name: "{{ munge_group }}"
+    gid: "{{ munge_gid }}"
+    state: present
+
+- name: Create munge user
+  user:
+    name: "{{ munge_user }}"
+    uid: "{{ munge_uid }}"
+    group: "{{ munge_group }}"
+    shell: /sbin/nologin
+    create_home: no
+    state: present
 
 # Generate Munge key on controller node
 - name: Generate Munge key (Debian/Ubuntu)
