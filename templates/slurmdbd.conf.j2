@@ -6,7 +6,7 @@
 AuthType=auth/munge
 
 # Daemon configuration
-DbdHost={{ inventory_hostname }}
+DbdHost={{ ansible_hostname }}
 DbdPort={{ slurm_dbd_port }}
 DebugLevel=info
 LogFile={{ slurm_install_dir }}/log/slurmdbd.log

@@ -15,7 +15,7 @@
 - name: Debug node information
   debug:
     msg: 
-      - "Current hostname: {{ inventory_hostname }}"
+      - "Current hostname: {{ ansible_hostname }}"
       - "Slurm control machine: {{ slurm_control_machine }}"
       - "Slurm roles: {{ slurm_roles | default([]) }}"
 

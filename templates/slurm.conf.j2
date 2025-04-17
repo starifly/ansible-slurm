@@ -4,7 +4,7 @@
 
 # Job Accounting Configuration
 AccountingStorageType=accounting_storage/slurmdbd
-AccountingStorageHost={{ inventory_hostname }}
+AccountingStorageHost={{ ansible_hostname }}
 AccountingStoragePort={{ slurm_dbd_port }}
 
 # Configless Mode Configuration

@@ -84,7 +84,7 @@
     password: "{{ mariadb_root_password }}"
     login_unix_socket: /var/lib/mysql/mysql.sock
     state: present
-  when: "empty_password_check.rc == 0 and ansible_os_family == 'RedHat'"
+  when: "ansible_os_family == 'RedHat' and empty_password_check.rc == 0"
 
 - name: Copy .my.cnf file with root credentials
   template:

@@ -46,17 +46,17 @@
     - "3.2.5"
     - "4.2.9"
     - "5.0.7"
-  when: inventory_hostname == slurm_control_machine
+  when: ansible_hostname == slurm_control_machine
 
 # Copy Slurm source files from local to remote temporary directory
 - name: Copy Slurm source files to temporary directory
   copy:
     src: "slurm-{{ slurm_version }}.tar.gz"
     dest: "{{ slurm_tmp_dir }}/slurm-{{ slurm_version }}.tar.gz"
-  when: inventory_hostname == slurm_control_machine
+  when: ansible_hostname == slurm_control_machine
 
 # Install epel online (RedHat/CentOS)
-- name: Install dependencies online (RedHat/CentOS)
+- name: Install epel-release online (RedHat/CentOS)
   yum:
     name:
       - epel-release
@@ -134,7 +134,7 @@
     - "3.2.5"
     - "4.2.9"
     - "5.0.7"
-  when: inventory_hostname == slurm_control_machine
+  when: ansible_hostname == slurm_control_machine
 
 # Compile and install PMIx (only on controller node)
 - name: Configure and compile PMIx
@@ -148,7 +148,7 @@
     - "3.2.5"
     - "4.2.9"
     - "5.0.7"
-  when: inventory_hostname == slurm_control_machine
+  when: ansible_hostname == slurm_control_machine
 
 # Copy PMIx from controller node to compute nodes
 - name: Get PMIx installation directory from controller node
@@ -162,7 +162,7 @@
     - "4.2.9"
     - "5.0.7"
   delegate_to: "{{ slurm_control_machine }}"
-  when: inventory_hostname != slurm_control_machine
+  when: ansible_hostname != slurm_control_machine
 
 # Extract Slurm source code
 - name: Extract Slurm source code
@@ -170,7 +170,7 @@
     src: "{{ slurm_tmp_dir }}/slurm-{{ slurm_version }}.tar.gz"
     dest: "{{ slurm_tmp_dir }}/"
     remote_src: yes
-  when: inventory_hostname == slurm_control_machine
+  when: ansible_hostname == slurm_control_machine
 
 # Compile and install Slurm (only on controller node)
 - name: Configure and compile Slurm
@@ -180,7 +180,7 @@
                --with-lua \
                --with-pmix={{ top_dir }}/pmix-3.2.5:{{ top_dir }}/pmix-4.2.9:{{ top_dir }}/pmix-5.0.7 \
                --enable-pam \
-               {% if ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' %}
+               {% if ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7' %}
                --with-hdf5=yes
                {% else %}
                --enable-cgroupv2 \
@@ -189,7 +189,7 @@
     make -j$(lscpu | grep '^CPU(s):' | awk '{print $2}') && make install
   args:
     creates: "{{ top_dir }}/slurm-{{ slurm_version }}/sbin/slurmctld"
-  when: inventory_hostname == slurm_control_machine
+  when: ansible_hostname == slurm_control_machine
 
 # Copy Slurm from controller node to compute nodes
 - name: Get Slurm installation directory from controller node
@@ -204,7 +204,7 @@
       - "--exclude=state"
       - "--exclude=spool"
   delegate_to: "{{ slurm_control_machine }}"
-  when: inventory_hostname != slurm_control_machine
+  when: ansible_hostname != slurm_control_machine
 
 # Clean up temporary files
 - name: Clean up temporary installation files

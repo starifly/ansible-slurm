@@ -14,17 +14,17 @@
       #  ignore_errors: yes
 
 # Install chrony (different for Ubuntu and CentOS)
-- name: Install chrony on Ubuntu
+- name: Install chrony on (Debian/Ubuntu)
   apt:
     name: chrony
     state: present
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_os_family == 'Debian'
 
-- name: Install chrony on CentOS
+- name: Install chrony on (RedHat/CentOS)
   yum:
     name: chrony
     state: present
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+  when: ansible_os_family == 'RedHat'
 
 # Configure chrony.conf on master node
 - name: Configure chrony.conf on master node (Debian/Ubuntu)
