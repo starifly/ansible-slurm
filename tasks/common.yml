@@ -81,7 +81,7 @@
   when: ansible_os_family == 'RedHat'
 
 # Install dependencies online (RedHat/CentOS)
-- name: Install dependencies online (RedHat/CentOS)
+- name: Install dependencies online (RedHat/CentOS/Kylin)
   yum:
     name:
       - gcc
@@ -110,7 +110,7 @@
       - rsync
     state: present
     disable_gpg_check: yes
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server'
 
 # Install dependencies online (Debian/Ubuntu)
 - name: Install dependencies online (Debian/Ubuntu)
@@ -155,9 +155,13 @@
 # Compile and install PMIx (only on controller node)
 - name: Configure and compile PMIx
   shell: |
-    cd /tmp/slurm_install/pmix-{{ item }}
+    cd {{ slurm_tmp_dir }}/pmix-{{ item }}
     ./configure --prefix={{ top_dir }}/pmix-{{ item }}
+    {% if ansible_os_family == 'Kylin Linux Advanced Server' %}
+    make -j$(lscpu | grep '^CPU:' | awk '{print $2}') && make install
+    {% else %}
     make -j$(lscpu | grep '^CPU(s):' | awk '{print $2}') && make install
+    {% endif %}
   args:
     creates: "{{ top_dir }}/pmix-{{ item }}/bin/pmix-info"
   loop:
@@ -191,7 +195,7 @@
 # Compile and install Slurm (only on controller node)
 - name: Configure and compile Slurm
   shell: |
-    cd /tmp/slurm_install/slurm-{{ slurm_version }}
+    cd {{ slurm_tmp_dir }}/slurm-{{ slurm_version }}
     ./configure --prefix={{ top_dir }}/slurm-{{ slurm_version }} \
                --with-lua \
                --with-pmix={{ top_dir }}/pmix-3.2.5:{{ top_dir }}/pmix-4.2.9:{{ top_dir }}/pmix-5.0.7 \
@@ -202,7 +206,11 @@
                --enable-cgroupv2 \
                --with-hdf5=yes
                {% endif %}
+    {% if ansible_os_family == 'Kylin Linux Advanced Server' %}
+    make -j$(lscpu | grep '^CPU:' | awk '{print $2}') && make install
+    {% else %}
     make -j$(lscpu | grep '^CPU(s):' | awk '{print $2}') && make install
+    {% endif %}
   args:
     creates: "{{ top_dir }}/slurm-{{ slurm_version }}/sbin/slurmctld"
   when: ansible_hostname == slurm_control_machine

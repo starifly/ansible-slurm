@@ -20,11 +20,11 @@
     state: present
   when: ansible_os_family == 'Debian'
 
-- name: Install chrony on (RedHat/CentOS)
+- name: Install chrony on (RedHat/CentOS/Kylin)
   yum:
     name: chrony
     state: present
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server'
 
 # Configure chrony.conf on master node
 - name: Configure chrony.conf on master node (Debian/Ubuntu)
@@ -37,14 +37,14 @@
   when: "'master' in slurm_roles and ansible_os_family == 'Debian'"
   notify: restart chrony
 
-- name: Configure chrony.conf on master node (RedHat/CentOS)
+- name: Configure chrony.conf on master node (RedHat/CentOS/Kylin)
   template:
     src: chrony_master.conf.j2
     dest: /etc/chrony.conf
     owner: root
     group: root
     mode: '0644'
-  when: "'master' in slurm_roles and ansible_os_family == 'RedHat'"
+  when: "'master' in slurm_roles and (ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server')"
   notify: restart chrony
 
 # Configure chrony.conf on other nodes
@@ -58,14 +58,14 @@
   when: "'master' not in slurm_roles and ansible_os_family == 'Debian'"
   notify: restart chrony
 
-- name: Configure chrony.conf on other nodes (RedHat/CentOS)
+- name: Configure chrony.conf on other nodes (RedHat/CentOS/Kylin)
   template:
     src: chrony_node.conf.j2
     dest: /etc/chrony.conf
     owner: root
     group: root
     mode: '0644'
-  when: "'master' not in slurm_roles and ansible_os_family == 'RedHat'"
+  when: "'master' not in slurm_roles and (ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server')"
   notify: restart chrony
 
 # Start and enable chrony service

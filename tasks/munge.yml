@@ -8,11 +8,11 @@
     creates: "{{ munge_key_path }}"
   when: "'master' in slurm_roles and ansible_os_family == 'Debian'"
 
-- name: Generate Munge key (RedHat/CentOS)
+- name: Generate Munge key (RedHat/CentOS/Kylin)
   shell: create-munge-key -f
   args:
     creates: "{{ munge_key_path }}"
-  when: "'master' in slurm_roles and ansible_os_family == 'RedHat'"
+  when: "'master' in slurm_roles and (ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server')"
 
 # Get Munge key from controller node
 - name: Get Munge key

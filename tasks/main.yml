@@ -31,7 +31,7 @@
     update_cache: yes
   register: yum_update_result
   ignore_errors: yes
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server'
 
 # Configure time synchronization
 - name: Include time synchronization configuration

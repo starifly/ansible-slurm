@@ -15,7 +15,7 @@
 # Add performance parameters to MariaDB configuration file
 - name: Get MariaDB configuration file path
   set_fact:
-    mysql_conf_path: "{{ '/etc/my.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/my.cnf' }}"
+    mysql_conf_path: "{{ '/etc/my.cnf' if (ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server') else '/etc/mysql/my.cnf' }}"
 
 - name: Ensure MariaDB configuration file exists
   file:
@@ -76,15 +76,15 @@
   changed_when: false
   failed_when: false
   check_mode: no
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server'
 
-- name: Set MariaDB root password (RedHat/CentOS)
+- name: Set MariaDB root password (RedHat/CentOS/Kylin)
   mysql_user:
     name: root
     password: "{{ mariadb_root_password }}"
     login_unix_socket: /var/lib/mysql/mysql.sock
     state: present
-  when: "ansible_os_family == 'RedHat' and empty_password_check.rc == 0"
+  when: "(ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server') and empty_password_check.rc == 0"
 
 - name: Copy .my.cnf file with root credentials
   template:
@@ -93,7 +93,7 @@
     mode: '0600'
   vars:
     mysql_root_password: "{{ mariadb_root_password }}"
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server'
 
 - name: Prohibit root remote login
   shell: |
