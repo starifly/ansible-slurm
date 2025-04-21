@@ -2,6 +2,8 @@
 
 这个Ansible role用于部署完整的Slurm集群，包括控制节点、计算节点、slurmdbd数据库节点以及其他必要组件。
 
+> 系统适配：已在 CentOS 7、Ubuntu 22.04、Ubuntu 24.04、Kylin V10 SP3 测试验证
+
 ## 角色组件
 
 本角色包含以下主要组件的部署和配置：
@@ -57,6 +59,9 @@ host_key_checking = False
 # vim /etc/ansible/hosts
 [master]
 192.168.161.189 ansible_python_interpreter=/usr/bin/python3
+[node]
+192.168.161.190 ansible_python_interpreter=/usr/bin/python3
+192.168.161.191 ansible_python_interpreter=/usr/bin/python3
 ```
 
 ## 使用方法
