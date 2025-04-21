@@ -4,8 +4,8 @@
 # Set timezone to Asia/Shanghai
 - name: Set timezone to Asia/Shanghai
   shell: timedatectl set-timezone Asia/Shanghai
-  args:
-    warn: false
+    #args:
+    #  warn: false
 
       #- name: Attempt to update apt cache
       #  apt:

@@ -10,7 +10,7 @@ slurm_cluster_name: "cluster"
 
 # Node configuration
 slurm_control_machine: "master"
-slurm_control_addr: "{{ hostvars[slurm_control_machine]['ansible_host'] | default(hostvars[slurm_control_machine]['ansible_ssh_host']) | default(slurm_control_machine) }}"
+slurm_control_addr: "{{ ansible_default_ipv4.address }}"
 
 slurm_compute_nodes:
   - name: "master,node[01-02]"
@@ -54,8 +54,8 @@ slurm_group_id: 888
 
 munge_user: munge
 munge_group: munge
-munge_uid: 999
-munge_gid: 999
+munge_uid: 666
+munge_gid: 666
 
 # Service configuration
 slurm_services:

@@ -17,6 +17,22 @@
     create_home: no
     state: present
 
+# Create munge group and user
+- name: Create munge group
+  group:
+    name: "{{ munge_group }}"
+    gid: "{{ munge_gid }}"
+    state: present
+
+- name: Create munge user
+  user:
+    name: "{{ munge_user }}"
+    uid: "{{ munge_uid }}"
+    group: "{{ munge_group }}"
+    shell: /sbin/nologin
+    create_home: no
+    state: present
+
 # Create temporary installation directory and HPC directory
 - name: Create temporary installation directory
   file:

@@ -46,6 +46,19 @@
     └── chrony_node.conf.j2     # 计算节点时间同步配置
 ```
 
+## Ansible 配置
+
+```bash
+# vim /etc/ansible/ansible.cfg
+[defaults]
+host_key_checking = False
+
+# 主机清单，麒麟V10系统可能需要指定python环境
+# vim /etc/ansible/hosts
+[master]
+192.168.161.189 ansible_python_interpreter=/usr/bin/python3
+```
+
 ## 使用方法
 
 1. 直接使用此角色
