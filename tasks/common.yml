@@ -84,10 +84,18 @@
   ansible.builtin.command: dnf config-manager --set-enabled crb
   when: ansible_distribution == 'Rocky' and ansible_distribution_major_version == '9'
 
+- name: Enable PowerTools repository (CentOS 8)
+  ansible.builtin.command: dnf config-manager --set-enabled PowerTools
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '8'
+
 # Install dependencies online (RedHat/CentOS)
 - name: Install dependencies online (RedHat/CentOS/Kylin)
   yum:
-    name:
+    name: "{{ packages }}"
+    state: present
+    disable_gpg_check: yes
+  vars:
+    base_packages:
       - gcc
       - make
       - mariadb
@@ -109,11 +117,9 @@
       - rpm-build
       - lua
       - lua-devel
-      - dbus-devel
-      - python-PyMySQL
       - rsync
-    state: present
-    disable_gpg_check: yes
+    pymysql_package: "{{ 'python3-PyMySQL' if ansible_distribution == 'CentOS' and ansible_distribution_major_version == '8' else 'python-PyMySQL' }}"
+    packages: "{{ base_packages + [pymysql_package] }}"
   when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server'
 
 # Install dependencies online (Debian/Ubuntu)
