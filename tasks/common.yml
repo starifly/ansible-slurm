@@ -80,6 +80,10 @@
     disable_gpg_check: yes
   when: ansible_os_family == 'RedHat'
 
+- name: Enable CRB repository (Rocky 9)
+  ansible.builtin.command: dnf config-manager --set-enabled crb
+  when: ansible_distribution == 'Rocky' and ansible_distribution_major_version == '9'
+
 # Install dependencies online (RedHat/CentOS)
 - name: Install dependencies online (RedHat/CentOS/Kylin)
   yum:
