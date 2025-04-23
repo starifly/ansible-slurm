@@ -2,7 +2,7 @@
 
 这个Ansible role用于部署完整的Slurm集群，包括控制节点、计算节点、slurmdbd数据库节点以及其他必要组件。
 
-> 系统适配：已在 CentOS 7、Ubuntu 22.04、Ubuntu 24.04、Kylin V10 SP3 测试验证
+> 系统适配：已适配 CentOS 7、CentOS 8、Ubuntu 22.04、Ubuntu 24.04、Rocky Linux 9.4、Kylin V10 SP3
 
 ## 角色组件
 
@@ -98,6 +98,7 @@ host_key_checking = False
 | top_dir | 安装根目录 | /opt/hpc |
 | slurm_cluster_name | 集群名称 | cluster |
 | slurm_control_machine | 控制节点主机名 | master |
+| slurm_control_addr | 控制节点IP地址 | / |
 | slurm_compute_nodes | 计算节点配置列表 | compute[01-02] |
 | slurm_partitions | 集群分区配置 | test |
 | mariadb_root_password | MariaDB根密码 | 123456 |
